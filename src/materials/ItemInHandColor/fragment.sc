@@ -33,13 +33,7 @@ void main() {
     }
   #endif
 
-  // glow (dari manyzz): alpha vertex <= 0.99 dianggap emisif
-  bool isGlowing = (v_color0.a <= 0.99);
-  if (!isGlowing) {
-    albedo.rgb *= albedo.rgb * v_light.rgb;
-  } else {
-    albedo.rgb *= 4.5;
-  }
+  albedo.rgb *= albedo.rgb * v_light.rgb;
 
   albedo.rgb = mix(albedo.rgb, v_fog.rgb, v_fog.a);
 

@@ -36,12 +36,7 @@ void main() {
 
   albedo = applyOverlayColor(albedo, OverlayColor);
 
-  // glow pixel (dari manyzz): alpha tekstur ~0.99
-  float isGlowPixel = step(0.9875, albedo.a) * (1.0 - step(0.9925, albedo.a));
-  vec3 baseColor = albedo.rgb;
-
   albedo.rgb *= albedo.rgb * v_light.rgb;
-  albedo.rgb = mix(albedo.rgb, baseColor * 8.0, isGlowPixel);
 
   albedo.rgb *= nlEntityEdgeHighlight(v_edgemap);
 

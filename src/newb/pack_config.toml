@@ -1,15 +1,15 @@
-name = "Newb X §cManyzz [§fRemake§c] §aV8"
+name = "Newb Classic"
 version = [0, 16, 56]
 min_supported_mc_version = [1, 26, 50]
 description = '''
 §c%w
-§7- Upgrade Minecraft visuals: vibrant colors, realistic lighting, immersive effects
+§7- An enchanced vanilla shader for Minecraft!
 %v
 §3https://newb-shader.devendrn.com/
 ''' # %w = patch warning, %v = version
-authors = ["devendrn","Itszmanyzz"]
+authors = ["devendrn"]
 url = "https://newb-shader.devendrn.com/"
-uuid = "eb4e3d65-5487-4b3f-8676-a222345d0f12" # Use https://www.uuidgenerator.net/version4
+uuid = "95f774cf-4afa-73e7-a21a-72146307b1d2" # Use https://www.uuidgenerator.net/version4
 materials = ["Actor", "ActorGlint", "ActorMultiTexture", "Clouds", "EndSky", "ItemInHandColor", "ItemInHandColorGlint", "ItemInHandTextured", "RenderChunk","Sky", "Stars", "SunMoon", "Weather"]
 
 [info] 
@@ -28,73 +28,24 @@ credits = '''
 # subpacks are arranged in left to right order
 # right-most subpack is enabled by default
 [[subpack]]
-define = "BOX_CLOUDS"
+define = "REALISTIC_CLOUDS"
 materials = ["Clouds", "RenderChunk"]
 description = '''
-Box Clouds
-'''
-
-[[subpack]]
-define = "MULTILAYER_ROUNDED_CLOUDS"
-materials = ["Clouds", "RenderChunk"]
-description = '''
-Multilayer Rounded Clouds
+Realistic clouds
 '''
 
 [[subpack]]
 define = "ROUNDED_CLOUDS"
-materials = ["Clouds", "RenderChunk"]
+materials = ["Clouds"]
 description = '''
 Rounded Clouds
 '''
 
 [[subpack]]
-define = "REALISTIC_CLOUDS"
+define = "BOX_CLOUDS"
 materials = ["Clouds", "RenderChunk"]
 description = '''
-Realistic Clouds
-'''
-
-[[subpack]]
-define = "SOFT_CLOUDS"
-materials = ["Clouds"]
-description = '''
-Soft Clouds
-'''
-
-[[subpack]]
-define = "MULTILAYER_VANILLA_CLOUDS"
-materials = ["Clouds", "RenderChunk"]
-description = '''
-Multilayer Vanilla Clouds
-'''
-
-[[subpack]]
-define = "VANILLA_CLOUDS"
-materials = ["Clouds", "RenderChunk"]
-description = '''
-Vanilla Clouds
-'''
-
-[[subpack]]
-define = "NO_AURORA"
-materials = ["Sky", "Clouds"]
-description = '''
-No Aurora
-'''
-
-[[subpack]]
-define = "CLASSIC_NIGHT"
-materials = ["Sky", "Clouds"]
-description = '''
-Classic Night
-'''
-
-[[subpack]]
-define = "NIGHT_VISION"
-materials = ["RenderChunk", "Actor", "ActorGlint", "ActorMultiTexture", "ItemInHandColor", "ItemInHandColorGlint", "ItemInHandTextured"]
-description = '''
-Night Vision
+Box Clouds
 '''
 
 [[subpack]]

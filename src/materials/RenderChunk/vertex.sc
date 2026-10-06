@@ -167,22 +167,15 @@ void main() {
     float shimmer = 1.0;
   #endif
 
-  #if defined(NL_LAVA_NOISE) || defined(NL_LAVA_WAVE) || defined(NL_LAVA_NOISE_BUMP)
+  #ifdef NL_LAVA_NOISE
     bool isc = (a_color0.r+a_color0.g+a_color0.b) > 2.999;
     bool isb = bPos.y < 0.891 && bPos.y > 0.889;
     if (isc && isb && (uv1.x > 0.81 && uv1.x < 0.876) && uv0.y > 0.5) {
-      #ifdef NL_LAVA_WAVE
-        pos.y += cos(length(abs(a_position.xyz - 8.0) * 10.0) + ViewPositionAndTime.w * 4.0) * 0.03;
+      vec4 lava = nlLavaNoise(gPos, t);
+      #ifdef NL_LAVA_NOISE_BUMP
+        worldPos.y += NL_LAVA_NOISE_BUMP*lava.a;
       #endif
-      #if defined(NL_LAVA_NOISE) || defined(NL_LAVA_NOISE_BUMP)
-        vec4 lava = nlLavaNoise(gPos, t);
-        #ifdef NL_LAVA_NOISE_BUMP
-          worldPos.y += NL_LAVA_NOISE_BUMP*lava.a;
-        #endif
-        #ifdef NL_LAVA_NOISE
-          color.rgb *= lava.rgb;
-        #endif
-      #endif
+      color.rgb *= lava.rgb;
     }
   #endif
 
