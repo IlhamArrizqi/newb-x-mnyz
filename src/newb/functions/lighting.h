@@ -12,6 +12,7 @@ vec3 sunLightTint(float dayFactor, float rain) {
   float dawnFactor = 1.0-dayFactor*dayFactor;
   dawnFactor *= dawnFactor*dawnFactor;
   dawnFactor *= mix(1.0, dawnFactor*dawnFactor, nightFactor);
+  dawnFactor *= 1.0 - smoothstep(0.0, 0.15, abs(dayFactor));
   vec3 tint = mix(NL_NOON_SUNLIGHT_COL, NL_NIGHT_MOONLIGHT_COL, nightFactor);
   tint = mix(tint, NL_DAWN_SUNLIGHT_COL, dawnFactor);
   tint = mix(tint, vec3_splat(dot(tint, vec3_splat(0.33))), rain);
@@ -59,6 +60,7 @@ vec3 nlLighting(
     float dawnFactor = 1.0-env.dayFactor*env.dayFactor;
     dawnFactor *= dawnFactor*dawnFactor;
     dawnFactor *= mix(1.0, dawnFactor*dawnFactor, nightFactor);
+    dawnFactor *= 1.0 - smoothstep(0.0, 0.15, abs(env.dayFactor));
     float nightIntensity = 1.0-(0.5+0.5*env.dayFactor);
     nightIntensity *= nightIntensity;
 
@@ -117,6 +119,10 @@ vec3 nlLighting(
     light *= 1.25;
   }
 
+  #ifdef NIGHT_VISION
+    light = max(light, vec3_splat(NL_NIGHT_VISION_LIGHT));
+  #endif
+
   return light;
 }
 
@@ -155,6 +161,7 @@ vec3 nlEntityLighting(nl_skycolor skycol, nl_environment env, vec3 pos, vec4 nor
     float dawnFactor = 1.0-env.dayFactor*env.dayFactor;
     dawnFactor *= dawnFactor*dawnFactor;
     dawnFactor *= mix(1.0, dawnFactor*dawnFactor, nightFactor);
+    dawnFactor *= 1.0 - smoothstep(0.0, 0.15, abs(env.dayFactor));
     float nightIntensity = 1.0-(0.5+0.5*env.dayFactor);
     nightIntensity *= nightIntensity;
 
@@ -203,6 +210,10 @@ vec3 nlEntityLighting(nl_skycolor skycol, nl_environment env, vec3 pos, vec4 nor
 
   lum = luminance(light);
   light += vec3_splat(overlayCol.a*(1.5/(1.0+lum)));
+
+  #ifdef NIGHT_VISION
+    light = max(light, vec3_splat(NL_NIGHT_VISION_LIGHT));
+  #endif
 
   return light;
 }
