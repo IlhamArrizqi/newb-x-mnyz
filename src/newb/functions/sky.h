@@ -48,6 +48,7 @@ nl_skycolor nlOverworldSkyColors(nl_environment env) {
   float dawnFactor = 1.0-env.dayFactor*env.dayFactor;
   dawnFactor *= dawnFactor*dawnFactor;
   dawnFactor *= mix(1.0, dawnFactor*dawnFactor, nightFactor);
+  dawnFactor *= 1.0 - smoothstep(0.0, 0.15, abs(env.dayFactor));
   s.zenith = mix(s.zenith, NL_DAWN_ZENITH_COL, dawnFactor);
   s.horizon = mix(s.horizon, NL_DAWN_HORIZON_COL, dawnFactor);
   s.horizonEdge = mix(s.horizonEdge, NL_DAWN_EDGE_COL, dawnFactor);
@@ -96,16 +97,18 @@ vec3 renderOverworldSky(nl_skycolor skyCol, nl_environment env, vec3 viewDir, bo
 
   float gradient1 = vh4*vh4;
   float gradient2 = 0.8*gradient1 + 0.2*vh2;
-  gradient1 *= gradient1;
+  gradient1 = mix(gradient1, sqrt(gradient1), 0.4);
   gradient1 = mix(gradient1*gradient1, 1.0, mg8);
   gradient2 = mix(gradient2, 1.0, mg8);
 
   float dawnFactor = 1.0-env.dayFactor*env.dayFactor;
+  dawnFactor *= 1.0 - smoothstep(0.0, 0.22, abs(env.dayFactor));
   float df = mix(1.0, g2.x, dawnFactor*dawnFactor);
   vec3 sky = mix(skyCol.horizon, skyCol.horizonEdge, gradient1*df*df);
   sky = mix(skyCol.zenith, sky, gradient2*df);
 
   sky *= 0.5+0.5*gradient2;
+  sky *= 1.0 + 0.2*gradient1*(1.0-mg8);
   sky *= (1.0 + (2.0*mg8 + 7.0*mg8*mg8)*mask)*mix(1.0, mask, NL_SKY_VOID_DARKNESS);
 
   if (!isSkyPlane) {
@@ -154,6 +157,112 @@ vec3 renderEndSky(vec3 horizonCol, vec3 zenithCol, vec3 viewDir, float t) {
 }
 
 vec3 nlRenderSky(nl_skycolor skycol, nl_environment env, vec3 viewDir, float t, bool isSkyPlane) {
+  vec3 sky;
+  viewDir.y = -viewDir.y;
+
+  if (env.end) {
+    sky = renderEndSky(skycol.horizon, skycol.zenith, viewDir, t);
+  } else {
+    sky = renderOverworldSky(skycol, env, viewDir, isSkyPlane);
+    #ifdef NL_UNDERWATER_STREAKS
+      // if (env.underwater) {
+      //   float a = atan2(viewDir.x, viewDir.z);
+      //   float grad = 0.5 + 0.5*viewDir.y;
+      //   grad *= grad;
+      //   float spread = (0.5 + 0.5*sin(3.0*a + 0.2*t + 2.0*sin(5.0*a - 0.4*t)));
+      //   spread *= (0.5 + 0.5*sin(3.0*a - sin(0.5*t)))*grad;
+      //   spread += (1.0-spread)*grad;
+      //   float streaks = spread*spread;
+      //   streaks *= streaks;
+      //   streaks = (spread + 3.0*grad*grad + 4.0*streaks*streaks);
+      //   sky += 2.0*streaks*skycol.horizon;
+      // }
+    #endif
+  }
+
+  return sky;
+}
+
+// shooting star
+// Blackhole center for manual control (don't change)
+#define NL_BH_CENTER_X 0.7
+#define NL_BH_CENTER_Y 0.25
+#define NL_BH_CENTER_Z 0.6
+
+vec4 renderBlackhole(vec3 vdir, float t) {
+  t *= NL_BH_SPEED;
+
+  float r = NL_BH_DIR;
+  //r += 0.0001 * t;
+  vec3 vr = vdir;
+
+  //vr.xy = mat2(cos(r), -sin(r), sin(r), cos(r)) * vr.xy;
+  // manual calculation mat2 to fix windows compiling
+  float cx = cos(r);
+  float sx = sin(r);
+  vr.xy = vec2(cx*vr.x - sx*vr.y, sx*vr.x + cx*vr.y);
+  //r *= 2.0;
+
+  vec3 bhCenter = vec3(NL_BH_CENTER_X, NL_BH_CENTER_Y, NL_BH_CENTER_Z);
+  bhCenter.xy = vec2(cx*bhCenter.x - sx*bhCenter.y, sx*bhCenter.x + cx*bhCenter.y);
+
+  vec3 vd = vr - bhCenter;
+    
+  float nl = sin(8.0*vd.x + t)*sin(8.0*vd.y - t)*sin(8.0*vd.z + t);
+  nl = mix(nl, sin(4.0*vd.x + t)*sin(4.0*vd.y - t), 0.5);
+
+  float a = atan2(vd.x, vd.z);
+  float d = NL_BH_DIST*length(vd + 0.002*nl);
+
+  float d0 = (0.6 - d) / 0.6;
+  float dm0 = 1.0 - max(d0, 0.0);
+    
+  float gl = 1.0 - clamp(-0.2*d0, 0.0, 1.0);
+  float gla = pow(1.0 - min(abs(d0), 1.0), 6.0);
+  float gl8 = pow(gl, 6.0); 
+
+  float hole = 0.9*pow(dm0, 20.0) + 0.1*pow(dm0, 3.0);
+  float bh = (gla + 0.7*gl8 + 0.2*gl8*gl8)*hole;
+
+  float df = sin(2.0*a - 3.0*d + 20.0*pow(1.2 - d, 3.0) + t*0.5);
+  df *= 0.85 + 0.1*sin(6.0*a + d + 2.0*t - 2.0*df);
+  bh *= 1.0 + pow(df, 3.0)*hole*max(1.0 - bh, 0.0);
+
+  vec3 col = bh*3.5*mix(NL_BH_COL_LOW, NL_BH_COL_HIGH, smoothstep(0.0, 1.0, bh));
+  return vec4(col, hole);
+}
+
+vec3 distortByBlackhole(vec3 vdir, float t, float strength) {
+  // Rotation of viewdir and blackhole center to the same space
+  float r = NL_BH_DIR;
+  float cx = cos(r);
+  float sx = sin(r);
+
+  // Blackhole center after rotation
+  vec3 bhCenter = vec3(NL_BH_CENTER_X, NL_BH_CENTER_Y, NL_BH_CENTER_Z);
+  bhCenter.xy = vec2(cx*bhCenter.x - sx*bhCenter.y, sx*bhCenter.x + cx*bhCenter.y);
+
+  // Viewdir is also rotated to blackhole space
+  vec3 vdir_rot = vdir;
+  vdir_rot.xy = vec2(cx*vdir.x - sx*vdir.y, sx*vdir.x + cx*vdir.y);
+
+  vec3 toBH = bhCenter - vdir_rot;
+  float dist = length(toBH);
+  float effect = smoothstep(0.6, 0.4, dist);
+  vec3 dir = normalize(vdir_rot - bhCenter);
+  float bend = strength*effect/(dist+0.2);
+
+  vdir_rot = normalize(mix(vdir_rot, dir, bend));
+  // Inverse rotation to return to the original viewdir space
+  float icx = cos(-r);
+  float isx = sin(-r);
+  vdir_rot.xy = vec2(icx*vdir_rot.x - isx*vdir_rot.y, isx*vdir_rot.x + icx*vdir_rot.y);
+
+  return vdir_rot;
+}
+
+vec3 nlRenderSky(nl_skycolor skycol, nl_environment env, vec3 viewDir, float t, bool isSkyPlane) {
+
   vec3 sky;
   viewDir.y = -viewDir.y;
 
