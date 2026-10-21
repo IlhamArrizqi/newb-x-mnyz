@@ -45,7 +45,7 @@ nl_skycolor nlOverworldSkyColors(nl_environment env) {
   s.horizon = mix(NL_DAY_HORIZON_COL, NL_NIGHT_HORIZON_COL*f, nightFactor);
   s.horizonEdge = mix(NL_DAY_EDGE_COL, NL_NIGHT_EDGE_COL*f, nightFactor);
 
-  float dawnFactor *= 1.0 - smoothstep(0.0, 0.15, abs(env.dayFactor));
+  float dawnFactor = 1.0 - smoothstep(0.0, 0.15, abs(env.dayFactor));
   dawnFactor *= dawnFactor*dawnFactor;
   dawnFactor *= mix(1.0, dawnFactor*dawnFactor, nightFactor);
   s.zenith = mix(s.zenith, NL_DAWN_ZENITH_COL, dawnFactor);
@@ -100,7 +100,7 @@ vec3 renderOverworldSky(nl_skycolor skyCol, nl_environment env, vec3 viewDir, bo
   gradient1 = mix(gradient1*gradient1, 1.0, mg8);
   gradient2 = mix(gradient2, 1.0, mg8);
 
-  float dawnFactor *= 1.0 - smoothstep(0.0, 0.22, abs(env.dayFactor));
+  float dawnFactor = 1.0 - smoothstep(0.0, 0.22, abs(env.dayFactor));
   float df = mix(1.0, g2.x, dawnFactor*dawnFactor);
   vec3 sky = mix(skyCol.horizon, skyCol.horizonEdge, gradient1*df*df);
   sky = mix(skyCol.zenith, sky, gradient2*df);
