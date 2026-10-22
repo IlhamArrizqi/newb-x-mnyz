@@ -18,7 +18,7 @@ void main() {
 
     vec2 dir = mul(u_model[0], vec4(0.0, 0.0, 0.0, 1.0)).xy;
     float st = 2.0*PI*TimeOfDay.x + 0.5*PI;
-    bool isSun = dot(vec2(cos(st), sin(st)), dir) > 0.0;
+    bool isSun = true;
 
     float dist = 300.0;
     float angle = 0.0;
