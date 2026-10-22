@@ -13,21 +13,16 @@ struct nl_skycolor {
 // rainbow spectrum
 vec3 spectrum(float x) {
   vec3 s = vec3(x-0.5, x, x+0.5);
-  s = smoothstep(1.0,0.0,abs(s));
+  s = smoothstep(1.0, 0.0, abs(s));
   return s*s;
 }
 
 vec3 getUnderwaterCol(vec3 FOG_COLOR) {
-  return 2.0*NL_UNDERWATER_TINT*FOG_COLOR*FOG_COLOR;
+  return 2.0 * NL_UNDERWATER_TINT * FOG_COLOR * FOG_COLOR;
 }
 
-vec3 getEndZenithCol() {
-  return NL_END_ZENITH_COL;
-}
-
-vec3 getEndHorizonCol() {
-  return NL_END_HORIZON_COL;
-}
+vec3 getEndZenithCol() { return NL_END_ZENITH_COL; }
+vec3 getEndHorizonCol() { return NL_END_HORIZON_COL; }
 
 nl_skycolor nlEndSkyColors(nl_environment env) {
   nl_skycolor s;
@@ -45,7 +40,7 @@ nl_skycolor nlOverworldSkyColors(nl_environment env) {
   s.horizon = mix(NL_DAY_HORIZON_COL, NL_NIGHT_HORIZON_COL*f, nightFactor);
   s.horizonEdge = mix(NL_DAY_EDGE_COL, NL_NIGHT_EDGE_COL*f, nightFactor);
 
-  float dawnFactor = 1.0-env.dayFactor*env.dayFactor;
+  float dawnFactor = 1.0 - smoothstep(0.0, 0.3, abs(env.dayFactor));
   dawnFactor *= dawnFactor*dawnFactor;
   dawnFactor *= mix(1.0, dawnFactor*dawnFactor, nightFactor);
   s.zenith = mix(s.zenith, NL_DAWN_ZENITH_COL, dawnFactor);
@@ -95,15 +90,20 @@ vec3 renderOverworldSky(nl_skycolor skyCol, nl_environment env, vec3 viewDir, bo
   float vh4 = vh2*vh2;
 
   float gradient1 = vh4*vh4;
-  float gradient2 = 0.8*gradient1 + 0.2*vh2;
+  float zenithPull = 3.5; 
+  float gradient2 = 0.8*gradient1 + 0.2*pow(vh2, zenithPull);
+
   gradient1 *= gradient1;
   gradient1 = mix(gradient1*gradient1, 1.0, mg8);
   gradient2 = mix(gradient2, 1.0, mg8);
 
-  float dawnFactor = 1.0-env.dayFactor*env.dayFactor;
-  float df = mix(1.0, g2.x, dawnFactor*dawnFactor);
+  float dawnFactor = 1.0 - smoothstep(0.0, 0.3, abs(env.dayFactor));
+  float df = 1.0;
   vec3 sky = mix(skyCol.horizon, skyCol.horizonEdge, gradient1*df*df);
   sky = mix(skyCol.zenith, sky, gradient2*df);
+  
+  float dawnGlow = g2.x * vh4 * dawnFactor * dawnFactor;
+  sky += vec3(2.9, 0.9, 0.1) * dawnGlow * (1.0 - env.rainFactor);
 
   sky *= 0.5+0.5*gradient2;
   sky *= (1.0 + (2.0*mg8 + 7.0*mg8*mg8)*mask)*mix(1.0, mask, NL_SKY_VOID_DARKNESS);
@@ -116,41 +116,83 @@ vec3 renderOverworldSky(nl_skycolor skyCol, nl_environment env, vec3 viewDir, bo
   }
 
   #ifdef NL_RAINBOW
-    if (!env.underwater) {
-      float rainbowFade = 0.5 + 0.5*viewDir.y;
-      rainbowFade *= rainbowFade;
-      rainbowFade *= mix(NL_RAINBOW_CLEAR, NL_RAINBOW_RAIN, env.rainFactor);
-      rainbowFade *= 0.5+0.5*env.dayFactor;
-      sky += spectrum(24.2*(0.85-g.x))*rainbowFade*skyCol.horizon;
-    }
+    float rainbowFade = 0.5 + 0.5 * viewDir.y;
+    rainbowFade *= rainbowFade;
+    rainbowFade *= mix(NL_RAINBOW_CLEAR, NL_RAINBOW_RAIN, env.rainFactor);
+    rainbowFade *= 0.5 + 0.5 * env.dayFactor;
+    sky += spectrum(24.2 * (0.85 - g.x)) * rainbowFade * skyCol.horizon;
   #endif
 
   return sky;
 }
 
 vec3 renderEndSky(vec3 horizonCol, vec3 zenithCol, vec3 viewDir, float t) {
-  t *= 0.1;
-  float a = atan2(viewDir.x, viewDir.z);
+    float a = atan2(viewDir.x, viewDir.z);
+    float y = viewDir.y;
+    float yb = y - BAND_ELEVATION;
+    float tt = t * 0.22;
 
-  float n1 = 0.5 + 0.5*sin(3.0*a + t + 10.0*viewDir.x*viewDir.y);
-  float n2 = 0.5 + 0.5*sin(5.0*a + 0.5*t + 5.0*n1 + 0.1*sin(40.0*a -4.0*t));
+    a += tt * PILLAR_ROTATION_SPEED;
+    float zenithSafe = 1.0 - smoothstep(ZENITH_SAFE_START, ZENITH_SAFE_END, y);
 
-  float waves = 0.7*n2*n1 + 0.3*n1;
+    float s5  = sin(a * 5.0);
+    float s8  = sin(a * 8.0);
+    float s13 = sin(a * 13.0);
 
-  float grad = 0.5 + 0.5*viewDir.y;
-  float streaks = waves*(1.0 - grad*grad*grad);
-  streaks += (1.0-streaks)*smoothstep(1.0-waves, -1.0, viewDir.y);
+    float w1n = s5 * 0.5 + 0.5;
+    float w2n = s8 * 0.5 + 0.5;
+    float w3n = s13 * 0.5 + 0.5;
 
-  float f = 0.3*streaks + 0.7*smoothstep(1.0, -0.5, viewDir.y);
-  float h = streaks*streaks;
-  float g = h*h;
-  g *= g;
+    float b1 = w1n * w1n;
+    float b2 = w2n * w2n * w2n;
+    float b3 = w3n * w3n;
+    b3 = b3 * b3;
 
-  vec3 sky = mix(zenithCol, horizonCol, f*f);
-  sky += (0.1*streaks + 2.0*g*g*g + h*h*h)*vec3(2.0,0.5,0.0);
-  sky += 0.25*streaks*spectrum(sin(2.0*viewDir.x*viewDir.y+t));
+    float bars = b1 * 0.25 + b2 * 0.55 + b3 * 0.20;
 
-  return sky;
+    float h1 = sin(a * 3.0 + tt * 2.2);
+    float maxHeight = 0.42 + 0.55 * h1 + 0.20 * s5;
+    maxHeight = clamp(maxHeight, 0.25, 0.95);
+
+    float vert = max(0.0, 1.0 - abs(yb) / maxHeight);
+    vert = vert * vert;
+    vert *= 1.0 - abs(yb) * 0.35;
+
+    float beams = bars * vert;
+
+    float glowBars = b1 * 0.3 + b2 * 0.7;
+    float glowVert = max(0.0, 1.0 - abs(yb) / (maxHeight * 2.4));
+    glowVert = glowVert * glowVert;
+    float glow = glowBars * glowVert * 0.8;
+
+    float bandPulse = 0.5 + 0.6 * sin(tt * 1.8);
+    float bandHeight = 0.12 + 0.06 * bandPulse;
+    float band = exp(-abs(yb) / bandHeight);
+
+    float localBoost = bars * exp(-abs(yb) / 0.28) * 0.5;
+    band += localBoost;
+
+    float bandColT = 0.95 + 0.5 * sin(tt * 1.0);
+    vec3 bandCol = mix(NL_STREAK_COL_PRIMARY * 0.7, NL_STREAK_COL_SECONDARY * 0.9, bandColT);
+
+    float grad = 0.5 + 0.5 * y;
+    float grad2 = grad * grad;
+    float horizonFade = smoothstep(1.0, -0.6, y);
+    
+    float f = 0.25 * beams + 0.75 * horizonFade;
+    vec3 sky = mix(zenithCol, horizonCol, f * f * f);
+
+    float bottomFade = 1.0 - 0.7 * smoothstep(-0.4, -1.0, y);
+    vec3 glowCol = mix(NL_STREAK_COL_PRIMARY, NL_STREAK_COL_SECONDARY, b2);
+    vec3 coreCol = NL_STREAK_COL_ZENITH * (0.6 + 0.4 * b3);
+
+    sky += 0.005 * glow * bottomFade * glowCol * 1.7;
+    sky += 0.95 * beams * bottomFade * glowCol * zenithSafe;
+    sky += 0.55 * b2 * vert * bottomFade * NL_STREAK_COL_SECONDARY * zenithSafe;
+    sky += 1.3 * b3 * vert * coreCol * grad2 * zenithSafe;
+    sky += band * bandCol * 2.5 * bottomFade * zenithSafe;
+
+    return sky;
 }
 
 vec3 nlRenderSky(nl_skycolor skycol, nl_environment env, vec3 viewDir, float t, bool isSkyPlane) {
@@ -158,31 +200,35 @@ vec3 nlRenderSky(nl_skycolor skycol, nl_environment env, vec3 viewDir, float t, 
   viewDir.y = -viewDir.y;
 
   if (env.end) {
-    sky = renderEndSky(skycol.horizon, skycol.zenith, viewDir, t);
+    if (isSkyPlane) {
+      sky = renderEndSky(skycol.horizon, skycol.zenith, viewDir, t);
+    } else {
+      float y = viewDir.y;
+      float horizonFade = smoothstep(1.0, -0.6, y);
+      sky = mix(skycol.zenith, skycol.horizon, horizonFade * horizonFade * horizonFade);
+    }
   } else {
     sky = renderOverworldSky(skycol, env, viewDir, isSkyPlane);
     #ifdef NL_UNDERWATER_STREAKS
-      // if (env.underwater) {
-      //   float a = atan2(viewDir.x, viewDir.z);
-      //   float grad = 0.5 + 0.5*viewDir.y;
-      //   grad *= grad;
-      //   float spread = (0.5 + 0.5*sin(3.0*a + 0.2*t + 2.0*sin(5.0*a - 0.4*t)));
-      //   spread *= (0.5 + 0.5*sin(3.0*a - sin(0.5*t)))*grad;
-      //   spread += (1.0-spread)*grad;
-      //   float streaks = spread*spread;
-      //   streaks *= streaks;
-      //   streaks = (spread + 3.0*grad*grad + 4.0*streaks*streaks);
-      //   sky += 2.0*streaks*skycol.horizon;
-      // }
+      if (env.underwater) {
+        float a = atan2(viewDir.x, viewDir.z);
+        float grad = 0.5 + 0.5 * viewDir.y;
+        grad *= grad;
+        float spread = (0.5 + 0.5 * sin(3.0 * a + 0.2 * t + 2.0 * sin(5.0 * a - 0.4 * t)));
+        spread *= (0.5 + 0.5 * sin(3.0 * a - sin(0.5 * t))) * grad;
+        spread += (1.0 - spread) * grad;
+        float streaks = spread * spread;
+        streaks *= streaks;
+        streaks = (spread + 3.0 * grad * grad + 4.0 * streaks * streaks);
+        sky += 2.0 * streaks * skycol.horizon;
+      }
     #endif
   }
-
   return sky;
 }
 
 // shooting star
 vec3 nlRenderShootingStar(vec3 viewDir, vec3 FOG_COLOR, float t) {
-  // transition vars
   float h = t / (NL_SHOOTING_STAR_DELAY + NL_SHOOTING_STAR_PERIOD);
   float h0 = floor(h);
   t = (NL_SHOOTING_STAR_DELAY + NL_SHOOTING_STAR_PERIOD) * (h-h0);
@@ -191,7 +237,6 @@ vec3 nlRenderShootingStar(vec3 viewDir, vec3 FOG_COLOR, float t) {
   float t1 = 1.0-t0;
   t1 *= t1; t1 *= t1; t1 *= t1;
 
-  // randomize size, rotation, add motion, add skew
   float r = fract(sin(h0) * 43758.545313);
   float a = 6.2831*r;
   float cosa = cos(a);
@@ -202,59 +247,15 @@ vec3 nlRenderShootingStar(vec3 viewDir, vec3 FOG_COLOR, float t) {
   uv.x -= 2.0*r + 3.5;
   uv.y += viewDir.y * 3.0;
 
-  // draw star
-  float g = 1.0-min(abs((uv.x-0.95))*20.0, 1.0); // source glow
-  float s = 1.0-min(abs(8.0*uv.y), 1.0); // line
-  s *= s*s*smoothstep(-1.0+1.96*t1, 0.98-t, uv.x); // decay tail
-  s *= s*s*smoothstep(1.0, 0.98-t0, uv.x); // decay source
-  s *= 1.0-t1; // fade in
-  s *= 1.0-t0; // fade out
+  float g = 1.0-min(abs((uv.x-0.95))*20.0, 1.0);
+  float s = 1.0-min(abs(8.0*uv.y), 1.0);
+  s *= s*s*smoothstep(-1.0+1.96*t1, 0.98-t, uv.x);
+  s *= s*s*smoothstep(1.0, 0.98-t0, uv.x);
+  s *= 1.0-t1;
+  s *= 1.0-t0;
   s *= 0.7 + 16.0*g*g;
-  s *= max(1.0-FOG_COLOR.r-FOG_COLOR.g-FOG_COLOR.b, 0.0); // fade out during day
+  s *= max(1.0-FOG_COLOR.r-FOG_COLOR.g-FOG_COLOR.b, 0.0);
   return s*vec3(0.8, 0.9, 1.0);
 }
-
-// Galaxy stars - needs further optimization
-vec3 nlRenderGalaxy(vec3 vdir, vec3 fogColor, nl_environment env, float t) {
-  if (env.underwater) {
-    return vec3_splat(0.0);
-  }
-
-  t *= NL_GALAXY_SPEED;
-
-  // rotate space
-  float cosb = sin(0.2*t);
-  float sinb = cos(0.2*t);
-  vdir.xy = mul(mat2(cosb, sinb, -sinb, cosb), vdir.xy);
-
-  // noise
-  float n0 = 0.5 + 0.5*sin(5.0*vdir.x)*sin(5.0*vdir.y - 0.5*t)*sin(5.0*vdir.z + 0.5*t);
-  float n1 = noise3D(15.0*vdir + sin(0.85*t + 1.3));
-  float n2 = noise3D(50.0*vdir + 1.0*n1 + sin(0.7*t + 1.0));
-  float n3 = noise3D(200.0*vdir - 10.0*sin(0.4*t + 0.500));
-
-  // stars
-  n3 = smoothstep(0.04,0.3,n3+0.02*n2);
-  float gd = vdir.x + 0.1*vdir.y + 0.1*sin(10.0*vdir.z + 0.2*t);
-  float st = n1*n2*n3*n3*(1.0+70.0*gd*gd);
-  st = (1.0-st)/(1.0+400.0*st);
-  vec3 stars = (0.8 + 0.2*sin(vec3(8.0,6.0,10.0)*(2.0*n1+0.8*n2) + vec3(0.0,0.4,0.82)))*st;
-
-  // glow
-  float gfmask = abs(vdir.x)-0.15*n1+0.04*n2+0.25*n0;
-  float gf = 1.0 - (vdir.x*vdir.x + 0.03*n1 + 0.2*n0);
-  gf *= gf;
-  gf *= gf*gf;
-  gf *= 1.0-0.3*smoothstep(0.2, 0.3, gfmask);
-  gf *= 1.0-0.2*smoothstep(0.3, 0.4, gfmask);
-  gf *= 1.0-0.1*smoothstep(0.2, 0.1, gfmask);
-  vec3 gfcol = normalize(vec3(n0, cos(2.0*vdir.y), sin(vdir.x+n0)));
-  stars += (0.4*gf + 0.012)*mix(vec3(0.5, 0.5, 0.5), gfcol*gfcol, NL_GALAXY_VIBRANCE);
-
-  stars *= mix(1.0, NL_GALAXY_DAY_VISIBILITY, env.dayFactor);
-
-  return stars*(1.0-env.rainFactor);
-}
-
 
 #endif
