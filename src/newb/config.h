@@ -31,7 +31,7 @@
 #define NL_TONEMAP_TYPE 3              // 1:Exponential, 2:Reinhard, 3:Extended Reinhard, 4:ACES
 #define NL_GAMMA 1.0                  // 0.3 low ~ 2.0 high
 #define NL_EXPOSURE 1.05              // [toggle] 0.5 dark ~ 3.0 bright
-#define NL_SATURATION 1.35            // [toggle] 0.0 grayscale ~ 4.0 super saturated
+#define NL_SATURATION 1.5            // [toggle] 0.0 grayscale ~ 4.0 super saturated
 #define NL_TINT                      // [toggle] enable light/dark tone tinting
 #define NL_TINT_LOW  vec3(0.72,0.68,0.66) // color tint for dark tone
 #define NL_TINT_HIGH vec3(1.08,1.0,0.9) // color tint for light tone
@@ -71,9 +71,9 @@
 #define NL_SKY_RAIN_MIX_FACTOR 0.9
 
 /* Sky colors - zenith=top, horizon=bottom */
-#define NL_DAWN_ZENITH_COL   vec3(0.08,0.09,0.18)
+#define NL_DAWN_ZENITH_COL   vec3(0.50,0.97,0.83)
 #define NL_DAWN_HORIZON_COL  vec3(0.96,0.56,0.42)
-#define NL_DAWN_EDGE_COL     vec3(1.05,0.68,0.5)
+#define NL_DAWN_EDGE_COL     vec3(0.50,0.79,0.96)
 #define NL_DAY_ZENITH_COL    vec3(0.42,0.83,1.65)
 #define NL_DAY_HORIZON_COL   vec3(1.15,0.75,1.15)
 #define NL_DAY_EDGE_COL      vec3(1.35,0.85,0.85)
