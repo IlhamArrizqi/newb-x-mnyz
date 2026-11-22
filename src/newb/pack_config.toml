@@ -1,15 +1,15 @@
-name = "Newb Classic"
+name = "Newb X §cManyzz [§fLite§c] §aV6"
 version = [0, 16, 57]
 min_supported_mc_version = [1, 26, 60]
 description = '''
 §c%w
-§7- An enchanced vanilla shader for Minecraft!
+§7- The Lite Version of Newb X Manyzz
 %v
 §3https://newb-shader.devendrn.com/
 ''' # %w = patch warning, %v = version
-authors = ["devendrn"]
+authors = ["devendrn","Itszmanyzz"]
 url = "https://newb-shader.devendrn.com/"
-uuid = "95f774cf-4afa-73e7-a21a-72146307b1d2" # Use https://www.uuidgenerator.net/version4
+uuid = "0b9ae88a-aa6a-4a20-9f53-9abaed186d98" # Use https://www.uuidgenerator.net/version4
 materials = ["Actor", "ActorGlint", "ActorMultiTexture", "Clouds", "EndSky", "ItemInHandColor", "ItemInHandColorGlint", "ItemInHandTextured", "RenderChunk","Sky", "Stars", "SunMoon", "Weather"]
 
 [info] 
@@ -27,62 +27,6 @@ credits = '''
 
 # subpacks are arranged in left to right order
 # right-most subpack is enabled by default
-[[subpack]]
-define = "REALISTIC_CLOUDS"
-materials = ["Clouds", "RenderChunk"]
-description = '''
-Realistic clouds
-'''
-
-[[subpack]]
-define = "ROUNDED_CLOUDS"
-materials = ["Clouds"]
-description = '''
-Rounded Clouds
-'''
-
-[[subpack]]
-define = "BOX_CLOUDS"
-materials = ["Clouds", "RenderChunk"]
-description = '''
-Box Clouds
-'''
-
-[[subpack]]
-define = "CHUNK_ANIM"
-materials = ["RenderChunk"]
-description = '''
-Chunk loading animation
-'''
-
-[[subpack]]
-define = "NO_WAVE_NO_FOG"
-materials = ["RenderChunk"]
-description = '''
-No fog and wave effects
-'''
-
-[[subpack]]
-define = "NO_FOG"
-materials = ["RenderChunk"]
-description = '''
-No fog effect
-'''
-
-[[subpack]]
-define = "NO_WAVE"
-materials = ["RenderChunk"]
-description = '''
-No wave effects
-'''
-
-#[[subpack]]
-#define = "LITE"
-#materials = ["Sky", "RenderChunk", "Actor", "ActorGlint", "EndSky", "Clouds", "SunMoon", "Weather", "ItemInHandTextured", "ItemInHandColor", "ItemInHandColorGlint", "Stars"]
-#description = '''
-#Many effects disabled. A bit lighter!
-#'''
-
 [[subpack]]
 define = "DEFAULT"
 materials = []
