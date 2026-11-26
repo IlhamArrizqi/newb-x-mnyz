@@ -206,6 +206,13 @@
 #define NL_GROUND_RAIN_WETNESS 1.0 // 0.0 no wetness ~ 1.0 fully wet blocks when raining
 #define NL_GROUND_RAIN_PUDDLES 1.0 // 0.0 no puddles ~ 1.0 puddles
 
+/* Rain drop ripples on block surfaces (top faces, only while raining) */
+#define NL_RAIN_RIPPLE 1.0          // [toggle] 0.3 subtle ~ 1.5 strong ripples
+#define NL_RAIN_RIPPLE_SCALE 3.0    // 1.5 big rings ~ 6.0 tiny rings
+#define NL_RAIN_RIPPLE_SPEED 0.3    // 0.1 slow ~ 0.8 fast
+#define NL_RAIN_RIPPLE_RADIUS 1     // 1 = 9 neighbour cells (fast), 2 = 25 cells (denser, slower)
+#define NL_RAIN_RIPPLE_PATCHY 1.0   // 0.0 ripples everywhere ~ 1.0 patchy wet areas
+
 /* Entity (Actor, ItemInHand) */
 #define NL_ENTITY_BRIGHTNESS     0.65 // 0.1 dark ~ 1.6 bright
 #define NL_ENTITY_EDGE_HIGHLIGHT 0.41 // [toggle] 0.0 no highlight ~ 1.6 bright highlight
@@ -240,45 +247,6 @@
   Subpack names and flags are inside `pack_config.toml`.
   Build tool will enable corresponding flags when compiling.
 */
-
-#ifdef LITE
-  #define NO_WAVE
-  #undef NL_GLOW_SHIMMER
-  #undef NL_LAVA_NOISE
-  #undef NL_LAVA_WAVE
-  #undef NL_WEATHER_SPECK
-  #undef NL_SHOOTING_STAR
-  #undef NL_CLOUD_AURORA_REFLECTION
-  #undef NL_UNDERWATER_STREAKS
-  #undef NL_RAIN_MIST_OPACITY
-  #undef NL_CLOUDY_FOG
-  #undef NL_ENTITY_EDGE_HIGHLIGHT
-  #undef NL_AURORA_3D
-  #undef NL_END_BLACKHOLE
-#endif
-
-#ifdef NO_WAVE_NO_FOG
-  #define NO_WAVE
-  #define NO_FOG
-#endif
-
-#ifdef NO_FOG
-  #undef NL_FOG
-#endif
-
-#ifdef NO_WAVE
-  #undef NL_PLANTS_WAVE
-  #undef NL_LANTERN_WAVE
-  #undef NL_UNDERWATER_WAVE
-  #undef NL_WATER_WAVE
-  #undef NL_RAIN_MIST_OPACITY
-  #undef NL_LAVA_WAVE
-#endif
-
-#ifdef CHUNK_ANIM
-  #undef NL_CHUNK_LOAD_ANIM
-  #define NL_CHUNK_LOAD_ANIM 100.0
-#endif
 
 #ifdef NIGHT_VISION
   // dibuat ulang: NL_NIGHT_BRIGHTNESS/NL_CAVE_BRIGHTNESS dari manyzz tidak dipakai kode mana pun,
@@ -328,12 +296,6 @@
   #undef NL_CLOUD2_SMOOTH
   #define NL_CLOUD_TYPE 2
   #define NL_CLOUD2_LAYER2
-  #undef NL_CLOUD_SHADOW
-#endif
-
-#ifdef BOX_CLOUDS
-  #undef NL_CLOUD_TYPE
-  #define NL_CLOUD_TYPE 0
   #undef NL_CLOUD_SHADOW
 #endif
 

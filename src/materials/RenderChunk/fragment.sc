@@ -1,7 +1,9 @@
-$input v_color0, v_color1, v_fog, v_refl, v_texcoord0, v_lightmapUV, v_extra
+$input v_color0, v_color1, v_fog, v_refl, v_texcoord0, v_lightmapUV, v_position, v_extra
 
 #include <bgfx_shader.sh>
 #include <newb/main.sh>
+
+uniform vec4 ViewPositionAndTime;
 
 SAMPLER2D_AUTOREG(s_MatTexture);
 SAMPLER2D_AUTOREG(s_SeasonsTexture);
@@ -53,6 +55,21 @@ void main() {
       diffuse.rgb += v_refl.rgb*mask;
     }
   }
+
+  // rain drop ripples - only on flat upward faces (not water/plants)
+  #if defined(NL_RAIN_RIPPLE) && !defined(ALPHA_TEST) && !defined(RENDER_AS_BILLBOARDS)
+    if (v_position.w > 0.0 && v_extra.b < 0.9 && v_extra.r > 0.95) {
+      float flatTest = abs(dFdx(v_extra.g)) + abs(dFdy(v_extra.g));
+      if (flatTest < 0.0004) {
+        // day light (sky brightness) or torch light
+        float dayLight = clamp(dot(v_fog.rgb, vec3(0.5,0.5,0.5)), 0.0, 1.0);
+        float brightness = max(dayLight, pow(v_lightmapUV.x, 1.4)*0.8);
+        vec4 ripple = nlRainRippleShade(v_position.xz, ViewPositionAndTime.w, v_position.w, v_fog.a, brightness);
+        diffuse.rgb *= 1.0 - ripple.a;
+        diffuse.rgb += ripple.rgb;
+      }
+    }
+  #endif
 
   diffuse.rgb = mix(diffuse.rgb, v_fog.rgb, v_fog.a);
 

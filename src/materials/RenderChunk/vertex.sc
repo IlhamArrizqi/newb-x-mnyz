@@ -2,7 +2,7 @@ $input a_color0, a_position, a_texcoord0, a_texcoord1
 #ifdef INSTANCING
   $input i_data0, i_data1, i_data2, i_data3
 #endif
-$output v_color0, v_color1, v_fog, v_refl, v_texcoord0, v_lightmapUV, v_extra
+$output v_color0, v_color1, v_fog, v_refl, v_texcoord0, v_lightmapUV, v_position, v_extra
 
 #include <bgfx_shader.sh>
 #include <newb/main.sh>
@@ -187,6 +187,17 @@ void main() {
   #endif
 
   v_extra = vec4(shade, worldPos.y, water, shimmer);
+
+  // xyz = absolute world pos, w = rain ripple strength (rain * sky exposure)
+  #ifdef NL_RAIN_RIPPLE
+    float rippleStrength = env.rainFactor*lit.y*lit.y*NL_RAIN_RIPPLE;
+    if (env.underwater || env.nether || env.end) {
+      rippleStrength = 0.0;
+    }
+    v_position = vec4(gPos, rippleStrength);
+  #else
+    v_position = vec4(gPos, 0.0);
+  #endif
   v_refl = refl;
   v_texcoord0 = uv0;
   v_lightmapUV = uv1;

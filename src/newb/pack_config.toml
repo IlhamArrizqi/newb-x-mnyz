@@ -27,12 +27,6 @@ credits = '''
 
 # subpacks are arranged in left to right order
 # right-most subpack is enabled by default
-[[subpack]]
-define = "BOX_CLOUDS"
-materials = ["Clouds", "RenderChunk"]
-description = '''
-Box Clouds
-'''
 
 [[subpack]]
 define = "MULTILAYER_ROUNDED_CLOUDS"
@@ -96,41 +90,6 @@ materials = ["RenderChunk", "Actor", "ActorGlint", "ActorMultiTexture", "ItemInH
 description = '''
 Night Vision
 '''
-
-[[subpack]]
-define = "CHUNK_ANIM"
-materials = ["RenderChunk"]
-description = '''
-Chunk loading animation
-'''
-
-[[subpack]]
-define = "NO_WAVE_NO_FOG"
-materials = ["RenderChunk"]
-description = '''
-No fog and wave effects
-'''
-
-[[subpack]]
-define = "NO_FOG"
-materials = ["RenderChunk"]
-description = '''
-No fog effect
-'''
-
-[[subpack]]
-define = "NO_WAVE"
-materials = ["RenderChunk"]
-description = '''
-No wave effects
-'''
-
-#[[subpack]]
-#define = "LITE"
-#materials = ["Sky", "RenderChunk", "Actor", "ActorGlint", "EndSky", "Clouds", "SunMoon", "Weather", "ItemInHandTextured", "ItemInHandColor", "ItemInHandColorGlint", "Stars"]
-#description = '''
-#Many effects disabled. A bit lighter!
-#'''
 
 [[subpack]]
 define = "DEFAULT"
