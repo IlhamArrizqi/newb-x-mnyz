@@ -1,4 +1,4 @@
-name = "Newb X §cManyzz [§fRemake§c] §aV9"
+name = "Newb X §cManyzz [§fRemake§c] §aV10"
 version = [0, 16, 57]
 min_supported_mc_version = [1, 26, 60]
 description = '''
@@ -9,7 +9,7 @@ description = '''
 ''' # %w = patch warning, %v = version
 authors = ["devendrn","Itszmanyzz"]
 url = "https://newb-shader.devendrn.com/"
-uuid = "eb4e3d65-5487-4b3f-8676-a222345d0f12" # Use https://www.uuidgenerator.net/version4
+uuid = "f44a0d29-3ec8-4ee9-a3a1-22e8c81f76a9" # Use https://www.uuidgenerator.net/version4
 materials = ["Actor", "ActorGlint", "ActorMultiTexture", "Clouds", "EndSky", "ItemInHandColor", "ItemInHandColorGlint", "ItemInHandTextured", "RenderChunk","Sky", "Stars", "SunMoon", "Weather"]
 
 [info] 
